@@ -84,17 +84,70 @@ module cache_tb;
     logic [31:0] mem [0:1023]; // memory array 
     always #5 clk = ~clk; //10ns clock period
 
+    task cpu_write(input [31:0] addr, input [31:0] data); //CPU WRITE TASK
+        begin
+            @(posedge clk);
+            req_valid_cpu <= 1'b1;
+            req_addr_cpu <= addr;
+            req_write_cpu <= 1'b1;
+            req_wdata_cpu <= data;
+            resp_ready_cpu <= 1'b1;
+
+            while(!req_ready_cpu) @(posedge clk);
+            
+            @(posedge clk);
+            req_valid_cpu <= 1'b0;
+            resp_ready_cpu <= 1'b0;
+        end
+    endtask
+
+    task cpu_read(input [31:0] addr); //CPU READ TASK
+        begin
+            @(posedge clk);
+            req_valid_cpu <= 1'b1;
+            req_addr_cpu <= addr;
+            req_write_cpu <= 1'b0;
+            resp_ready_cpu <= 1'b1;
+
+            while(!resp_valid_cpu) @(posedge clk);
+            $display("Read addr = %h, data = %h", addr, resp_rdata_cpu);
+
+            @(posedge clk);
+            req_valid_cpu <= 1'b0;
+        end
+    endtask
+
     initial begin
         for(int i=0; i<1024; i++) begin
             mem[i] = i;
         end
     end
 
+    initial begin
+        rst = 1'b1;
+        #30;    
+        rst = 0;
+
+        //TEST CASES
+        #20;
+        cpu_read(32'h0000_0104);
+        cpu_read(32'h0000_0104);
+        cpu_write(32'h0000_0104, 32'hDEADBEEF);
+        cpu_read(32'h0000_0104);
+
+        #100 $finish;
+    end
+
     always_ff @(posedge clk) begin //AXI_WRITE_SLAVE 
         axi_wready <= 1'b1;
         axi_awready <= 1'b1;
+        if(axi_bready && axi_bvalid) begin
+            axi_bvalid <= 1'b0;
+        end
+
         if(axi_awvalid && axi_wvalid) begin
             mem[axi_awaddr[31:2]] <= axi_wdata;
+            axi_bvalid <= 1'b1;
         end
     end
 
@@ -108,3 +161,4 @@ module cache_tb;
             axi_rvalid <= 1'b0;
         end
     end
+endmodule
