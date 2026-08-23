@@ -39,7 +39,7 @@ module axi_controller(
     output logic axi_rready,
     input  logic [31:0] axi_rdata
 );
-    typedef enum states {IDLE, WRITE_ADDR, WRITE_RESPONSE, READ_ADDR, READ_DATA} states_t;
+    typedef enum {IDLE, WRITE_ADDR, WRITE_RESPONSE, READ_ADDR, READ_DATA} states_t;
     states_t p_state, n_state;
 
     logic [31:0] addr_reg;
@@ -87,7 +87,6 @@ module axi_controller(
         axi_awaddr = addr_reg;
         axi_wdata = cmd_wdata;
         axi_wstrb = 4'b1111;
-        axi_rvalid = 1'b0;
         axi_araddr = addr_reg; 
         axi_rready = 1'b0;
 

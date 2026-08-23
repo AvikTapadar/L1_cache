@@ -139,7 +139,7 @@
     end
 
     //CACHE FSM
-    typedef enum cache_states {IDLE, COMPARE, STORE, WRITE_THROUGH} cache_state_t;
+    typedef enum {IDLE, COMPARE, STORE, WRITE_THROUGH} cache_state_t;
     cache_state_t p_state, n_state;
 
     always_ff@(posedge clk or posedge rst) begin
