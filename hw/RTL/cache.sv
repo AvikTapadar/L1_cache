@@ -1,4 +1,4 @@
- module cache_direct_mapped (
+module cache_direct_mapped (
     input logic clk,
     input logic rst,
 
@@ -137,6 +137,8 @@
             default: hit_data = 32'b0;
         endcase
     end
+    
+    assign resp_rdata_cpu = hit_data;
 
     //CACHE FSM
     typedef enum {IDLE, COMPARE, STORE, WRITE_THROUGH} cache_state_t;

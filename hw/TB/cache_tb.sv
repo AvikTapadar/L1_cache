@@ -134,7 +134,19 @@ module cache_tb;
         cpu_read(32'h0000_0104);
         cpu_write(32'h0000_0104, 32'hDEADBEEF);
         cpu_read(32'h0000_0104);
-
+        
+       $display("Forcing violation");
+                @(posedge clk);
+                req_valid_cpu <= 1'b1;
+                req_addr_cpu  <= 32'h0000_0008;
+                
+                // Wait until the cache actually drops ready (enters wait state)
+                while (req_ready_cpu == 1'b1) @(posedge clk);
+                // NOW that it is busy, drop the valid signal! (ILLEGAL)
+                req_valid_cpu <= 1'b0;
+                
+                @(posedge clk);
+                @(posedge clk);
         #100 $finish;
     end
 
@@ -161,4 +173,12 @@ module cache_tb;
             axi_rvalid <= 1'b0;
         end
     end
+    
+    property p_cpu_req_hold;
+            @(posedge clk) disable iff (rst) 
+            (req_valid_cpu && !req_ready_cpu) |=> (req_valid_cpu && (req_addr_cpu == $past(req_addr_cpu)));
+        endproperty
+    
+    assert_cpu_req_hold: assert property(p_cpu_req_hold) 
+        else $fatal("Protocol Violation: CPU dropped request or changed address while cache was not ready!");
 endmodule
