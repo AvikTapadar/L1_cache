@@ -44,7 +44,7 @@ The design is rigorously verified against protocol violations using a custom mem
    ```tcl
    set_property -name {xsim.elaborate.xelab.more_options} -value {-assert} -objects [get_filesets sim_1]
    launch_simulation
-   run 1000ns ```
+   run 1000ns
 
 ## Author
 Avik Tapadar
